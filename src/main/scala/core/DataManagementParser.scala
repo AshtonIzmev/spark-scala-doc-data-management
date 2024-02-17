@@ -1,8 +1,7 @@
-package main.scala.core
+package scala.core
 
-import main.scala.core.Toolkit.gr
-import main.scala.dama.{DataDictionnary, DataGovernance, DataQuality, DataTable}
-
+import scala.core.Toolkit.gr
+import scala.dama.{DataDictionnary, DataGovernance, DataQuality, DataTable}
 import scala.meta._
 import scala.meta.tokens.Token
 import scala.util.Using

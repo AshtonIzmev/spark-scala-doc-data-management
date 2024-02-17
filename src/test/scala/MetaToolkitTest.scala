@@ -9,7 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import scala.dama.daqua.CheckMapping.qualityFuns
 import scala.dama.daqua.QualityProcessor.FileContent
-import scala.toolkit.MetaToolkit.{callFunctionByName, extractComments}
+import scala.toolkit.MetaToolkit.{callFunctionByName, extractStructure}
 
 class MetaToolkitTest extends AnyWordSpec with Matchers with MockFactory {
 
@@ -36,7 +36,7 @@ class MetaToolkitTest extends AnyWordSpec with Matchers with MockFactory {
     }
 
     "return a correctly parsed dataframe" in {
-      val result: DataFrame = callFunctionByName("main.scala.product.DataProduct", "getDataProduct", Seq.empty)
+      val result: DataFrame = callFunctionByName("scala.product.DataProduct", "getDataProduct", Seq.empty)
         .asInstanceOf[DataFrame]
       result.count() shouldBe 2
       result.columns.length shouldBe 3
@@ -47,7 +47,7 @@ class MetaToolkitTest extends AnyWordSpec with Matchers with MockFactory {
   "extractComments" should {
     "correctly extract comments and parse code from a file" in {
       val filePath = "src/main/scala/product/DataProduct.scala"
-      val result: FileContent = extractComments(filePath).get
+      val result: FileContent = extractStructure(filePath).get
       result.comments shouldBe a[IndexedSeq[_]]
       result.comments should not be empty
       result.parsed.get shouldBe a[scala.meta.Source]

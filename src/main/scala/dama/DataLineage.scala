@@ -1,4 +1,4 @@
-package main.scala.dama
+package scala.dama
 
 object DataLineage {
 

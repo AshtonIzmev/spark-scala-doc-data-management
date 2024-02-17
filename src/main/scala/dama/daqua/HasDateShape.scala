@@ -8,7 +8,7 @@ import org.apache.spark.sql.DataFrame
 object HasDateShape {
 
   def dateShapeConstraint(column: String, format: String): Check =
-    Check(CheckLevel.Warning, s"$column date shape check")
+    Check(CheckLevel.Warning, s"$column column date shape check")
       .satisfies(s"date_format($column, '$format') IS NOT NULL", s"Date format check for $column")
 
   def check(df: DataFrame, column: String, format: String): VerificationResult =

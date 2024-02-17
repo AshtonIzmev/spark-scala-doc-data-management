@@ -1,11 +1,12 @@
-package main.scala.product
+package scala.product
 
-import main.scala.core.DataCore.spark
-import main.scala.dama.DataDictionnary._
-import main.scala.dama.DataGovernance._
-import main.scala.dama.DataTable._
 import org.apache.spark.sql.DataFrame
-import spark.implicits._
+
+import scala.core.DataCore.spark
+import scala.core.DataCore.spark.implicits._
+import scala.dama.DataDictionnary._
+import scala.dama.DataGovernance._
+import scala.dama.DataTable._
 
 
 object DataProduct {

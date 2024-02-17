@@ -8,7 +8,7 @@ import org.apache.spark.sql.DataFrame
 object IsUnique {
 
   def uniqueConstraint(column: String): Check =
-    Check(CheckLevel.Warning, column + " uniqueness check")
+    Check(CheckLevel.Warning, column + " column uniqueness check")
       .hasCompleteness(column, _ >= 0.95)
       .isUnique(column)
 

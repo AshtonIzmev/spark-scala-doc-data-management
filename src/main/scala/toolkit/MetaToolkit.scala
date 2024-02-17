@@ -30,7 +30,7 @@ object MetaToolkit {
   def getDf(className: String, funGetName: String): DataFrame =
     callFunctionByName(className, funGetName, Seq.empty).asInstanceOf[DataFrame]
 
-  def extractComments(filePath: String): Try[FileContent] = {
+  def extractStructure(filePath: String): Try[FileContent] = {
     Using(scala.io.Source.fromFile(filePath)) { reader =>
       val scalaCode = reader.mkString
       val tokens = scalaCode.tokenize.get

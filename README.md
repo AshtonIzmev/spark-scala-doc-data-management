@@ -33,3 +33,9 @@ The main idea is here to
 
 # When ?
 This is especially usefull for small tech teams that do not have business data owners (who would need dedicated tools and UI).
+
+# Maintainers
+* https://github.com/anasmeskine
+* https://github.com/khalid-sudo
+* https://github.com/SAMI-li
+* https://github.com/AshtonIzmev
