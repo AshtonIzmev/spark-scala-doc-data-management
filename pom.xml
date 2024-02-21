@@ -48,12 +48,17 @@
         </dependency>
 
         <dependency>
+            <groupId>com.lihaoyi</groupId>
+            <artifactId>upickle_2.12</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.scalamock</groupId>
             <artifactId>scalamock_2.12</artifactId>
             <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
-
 
         <!-- Scope Test -->
         <dependency>
@@ -115,6 +120,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>7</source>
+                    <target>7</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

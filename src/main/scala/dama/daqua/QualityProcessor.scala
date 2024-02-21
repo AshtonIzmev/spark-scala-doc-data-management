@@ -5,8 +5,8 @@ import org.apache.spark.sql.DataFrame
 
 import scala.Console.println
 import scala.dama.daqua.CheckMapping.qualityFuns
-import scala.meta.{Parsed, _}
-import scala.toolkit.MetaToolkit._
+import scala.meta._
+import scala.toolkit.Toolkit._
 
 
 object QualityProcessor {

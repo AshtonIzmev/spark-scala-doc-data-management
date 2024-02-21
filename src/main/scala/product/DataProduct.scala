@@ -2,7 +2,6 @@ package scala.product
 
 import org.apache.spark.sql.DataFrame
 
-import scala.core.DataCore.spark
 import scala.core.DataCore.spark.implicits._
 import scala.dama.DataDictionnary._
 import scala.dama.DataGovernance._

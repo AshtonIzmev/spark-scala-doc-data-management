@@ -9,9 +9,9 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import scala.dama.daqua.CheckMapping.qualityFuns
 import scala.dama.daqua.QualityProcessor.FileContent
-import scala.toolkit.MetaToolkit.{callFunctionByName, extractStructure}
+import scala.toolkit.Toolkit.{callFunctionByName, extractStructure}
 
-class MetaToolkitTest extends AnyWordSpec with Matchers with MockFactory {
+class ToolkitTest extends AnyWordSpec with Matchers with MockFactory {
 
   private val spark: SparkSession = SparkSession.builder().appName("test").master("local[1]").getOrCreate()
   import spark.implicits._
