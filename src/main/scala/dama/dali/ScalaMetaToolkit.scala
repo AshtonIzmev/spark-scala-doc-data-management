@@ -1,7 +1,8 @@
 package scala.dama.dali
 
-import scala.meta._
 import upickle.default._
+
+import scala.meta._
 
 
 object ScalaMetaToolkit {
@@ -9,7 +10,7 @@ object ScalaMetaToolkit {
   private case class LineageLink(source: String, target: String, kind: String)
   private case class LineageTooltip(definition: String, tip: String)
 
-  def linksSeqToJson(links: Seq[(String, String)]): String = {
+  def linksSeqToJson(links: Seq[(String, String, String)]): String = {
     implicit val linkRw: ReadWriter[LineageLink] = macroRW
     write(links.map(l=>LineageLink(l._2, l._1, "link")))
   }
@@ -26,7 +27,7 @@ object ScalaMetaToolkit {
       case q"import ..$importersnel" =>
         val importObject = importersnel.head.collect {
           case Name.Indeterminate(name) => name
-          case Importee.Wildcard() => ""
+          case Importee.Wildcard() => "_"
         }
         val importPackage = importersnel.head.collect {
           case Term.Name(name) => name
@@ -35,53 +36,69 @@ object ScalaMetaToolkit {
     }.reduce((a1,a2)=>a1.union(a2))
   }
 
-  def getDefs(tree: Tree): Seq[(String, String)] = {
-    tree.collect {
-      case defn@q"..$mods def $name[..$tparams](...$paramss): $tpeopt = $expropt" =>
-        (name.toString(), expropt.toString())
-      case defn@q"..$mods def $name: $tpeopt = $expropt" =>
-        (name.toString(), expropt.toString())
-    }
-  }
-
-  def getDefsFilteredParse(tree: Tree):  Seq[(String, String)] = {
-    val allLinks = getCompleteParse(tree).filter(_._1 != "root")
-    val defsMap = getDefs(tree).map(_._1)
-    allLinks.filter(l => defsMap.contains(l._1) && defsMap.contains(l._2))
-  }
-
-  def getCompleteParse(tree: Tree): Seq[(String, String)] = recurseParse("root", tree, "object")
-
-  private def recurseParse(father:String, tree:Tree, categ:String): Seq[(String, String)] = {
+  def getObjectObject(tree: Tree): Seq[String] = {
     tree.collect {
       case defn@q"..$mods object $ename $template" =>
-        recurseParse(ename.toString(), template, "object") :+ (father, ename.toString())
-      case defn@q"..$mods def $name[..$tparams](...$paramss): $tpeopt = $expropt" =>
-        recurseParse(name.toString(), expropt, "def") :+ (father, name.toString())
-      case defn@q"..$mods def $name: $tpeopt = $expropt" =>
-        recurseParse(name.toString(), expropt, "def") :+ (father, name.toString())
-      case defn@q"..$mods val ..$patsnel: $tpeopt = $expropt" =>
-        recurseParse(patsnel.head.toString(), expropt, "val") :+ (father, patsnel.head.toString())
-      case q"$expr.$name" =>
-        if(Seq("def", "val").contains(categ)) Seq((father, expr.toString() + ":" + name.toString())) else Seq[(String, String)]()
-      case q"$name" =>
-        if(Seq("def", "val").contains(categ)) Seq((father, name.toString())) else Seq[(String, String)]()
-    }.reduceOption((a1,a2)=>a1.union(a2)).getOrElse(Seq())
+        ename.toString()
+    }
   }
 
-  def filterStartEndLineage(start:Seq[String], end:Seq[String], deps:Seq[(String, String)]): Seq[(String, String)] = {
+  def getDefs(tree: Tree): Seq[(String, String, String)] = {
+    val obj = getObjectObject(tree).head
+    tree.collect {
+      case defn@q"..$mods def $name[..$tparams](...$paramss): $tpeopt = $expropt" =>
+        (obj, name.toString(), expropt.toString())
+      case defn@q"..$mods def $name: $tpeopt = $expropt" =>
+        (obj, name.toString(), expropt.toString())
+    }
+  }
 
-    def recurseFilter(st:String, stack:Seq[(String, String)]): Seq[(String, String)] = {
-      val next = deps.filter(n => n._1==st)
-      val nodesEnd = next.filter(n => end.contains(n._2))
-      val nodesNext = next.filter(n => !end.contains(n._1))
+  def getIndirectDefMap(tree: Tree, allDefs: Seq[(String, String)]): Map[String, String] = {
+    val treeImports = getObjectImports(tree)
+    val treeImportsFull = treeImports.filter(_._2 != "_").map(_.swap).toMap
+    val treeImportsObjIncomplete = treeImports.filter(_._2 == "_").map(_._1)
 
-      if (nodesEnd.nonEmpty) return stack ++ nodesEnd
-      if (nodesNext.isEmpty) return Seq.empty
-      nodesNext.map(node => recurseFilter(node._2, Seq(node) ++ stack)).reduce((a1, a2)=>a1.union(a2))
+    val importDefsInvMap = allDefs.filter(x => treeImportsObjIncomplete.contains(x._1)).map(_.swap).toMap
+    treeImportsFull ++ importDefsInvMap
+  }
+
+  def getCompleteParse(tree: Tree, allDefs: Seq[(String, String)]): Seq[(String, String, String)] = {
+    val defToObjMap = getIndirectDefMap(tree, allDefs)
+
+    val allDefsInvMap = allDefs.map(_.swap).toMap
+    val treeObject = getObjectObject(tree).head
+
+    val parsed = getRecurseParse(tree)
+
+    val parsedDefs = parsed.filter(p => allDefs.map(_._2).contains(p._1) && allDefs.map(_._2).contains(p._2))
+
+    def addObj(elem: String): String = {
+      if (allDefs.map(_._2).contains(elem) && defToObjMap.keySet.contains(elem)) return defToObjMap.getOrElse(elem, "")+"."+elem
+      if (allDefs.map(_._2).contains(elem) && allDefsInvMap.keySet.contains(elem)) return allDefsInvMap.getOrElse(elem, "")+"."+elem
+      if (allDefs.map(_._2).contains(elem)) return treeObject+"."+elem
+      elem
     }
 
-    start.map(st => recurseFilter(st, Seq.empty)).filter(_.nonEmpty).reduce((a1, a2)=>a1.union(a2))
+    parsedDefs.map(p => (addObj(p._1), addObj(p._2), p._3))
+  }
+
+  def getRecurseParse(tree: Tree): Seq[(String, String, String)] = recurseParse("root", tree, "object")
+
+  private def recurseParse(father:String, tree:Tree, categ:String): Seq[(String, String, String)] = {
+    tree.collect {
+      case defn@q"..$mods def $name[..$tparams](...$paramss): $tpeopt = $expropt" =>
+        recurseParse(name.toString(), expropt, "def") :+ (father, name.toString(), categ)
+      case defn@q"..$mods def $name: $tpeopt = $expropt" =>
+        recurseParse(name.toString(), expropt, "def") :+ (father, name.toString(), categ)
+      case defn@q"..$mods val ..$patsnel: $tpeopt = $expropt" =>
+        recurseParse(patsnel.head.toString(), expropt, "val") :+ (father, patsnel.head.toString(), categ)
+      case q"$expr.$name" =>
+        if(Seq("def", "val").contains(categ)) Seq((father, expr.toString() + ":" + name.toString(), categ))
+        else Seq[(String, String, String)]()
+      case q"$name" =>
+        if(Seq("def", "val").contains(categ)) Seq((father, name.toString(), categ))
+        else Seq[(String, String, String)]()
+    }.reduceOption((a1,a2)=>a1.union(a2)).getOrElse(Seq())
   }
 
 }

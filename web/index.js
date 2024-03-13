@@ -13,7 +13,7 @@ function draw(container, dataLinks, toolTips) {
     const simulation = d3
     .forceSimulation(nodes)
     .force("link", d3.forceLink(links).id(d => d.id))
-    .force("charge", d3.forceManyBody().strength(-400))
+    .force("charge", d3.forceManyBody().strength(-600))
     .force("x", d3.forceX())
     .force("y", d3.forceY());
     

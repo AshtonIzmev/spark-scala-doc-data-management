@@ -67,10 +67,8 @@ object Toolkit {
    * @param scalaFiles the files we want to parse
    * @return
    */
-  def getCode(scalaFiles: Seq[Path]): String =
+  def getCode(scalaFiles: Seq[Path]): Seq[String] =
     scalaFiles.map(f => scala.io.Source.fromFile(f.toString))
       .map(source => try source.getLines().mkString("\n") finally source.close())
-      .mkString("\n")
-
 
 }
